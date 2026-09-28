@@ -2,13 +2,19 @@ package com.codewithsvns.authentication.dto;
 
 public class LoginResponse {
 
-    private String message;
+    private String accessToken;
+    private String refreshToken;
 
-    public LoginResponse(String message) {
-        this.message = message;
+    public LoginResponse(String accessToken, String refreshToken) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
     }
 
-    public String getMessage() {
-        return message;
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
     }
 }

@@ -13,7 +13,7 @@ import com.codewithsvns.authentication.repository.UserRepository;
 import com.codewithsvns.authentication.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import com.codewithsvns.authentication.dto.LoginResponse;
 import java.time.LocalDateTime;
 
 @Service
@@ -123,7 +123,7 @@ public class AuthService {
         emailService.sendOtp(user.getEmail(), otp);
     }
 
-    public String login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
@@ -148,8 +148,28 @@ public class AuthService {
         String refreshToken =
                 jwtService.generateRefreshToken(user.getEmail());
 
-        // Temporary return.
-        // We will store these in cookies later.
-        return accessToken + "|" + refreshToken;
+        return new LoginResponse(
+                accessToken,
+                refreshToken
+        );
+    }
+
+    public String refreshAccessToken(String refreshToken) {
+
+        if (!jwtService.isTokenValid(refreshToken)) {
+            throw new BadRequestException(
+                    "Invalid or expired refresh token"
+            );
+        }
+
+        if (!jwtService.isRefreshToken(refreshToken)) {
+            throw new BadRequestException(
+                    "Invalid refresh token"
+            );
+        }
+
+        String email = jwtService.extractEmail(refreshToken);
+
+        return jwtService.generateAccessToken(email);
     }
 }

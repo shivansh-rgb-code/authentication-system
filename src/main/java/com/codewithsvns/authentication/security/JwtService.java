@@ -24,6 +24,7 @@ public class JwtService {
 
         return Jwts.builder()
                 .subject(email)
+                .claim("type", "access")
                 .issuedAt(new Date())
                 .expiration(new Date(
                         System.currentTimeMillis() + 15 * 60 * 1000
@@ -31,10 +32,12 @@ public class JwtService {
                 .signWith(secretKey)
                 .compact();
     }
+
     public String generateRefreshToken(String email) {
 
         return Jwts.builder()
                 .subject(email)
+                .claim("type", "refresh")
                 .issuedAt(new Date())
                 .expiration(new Date(
                         System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000
@@ -42,6 +45,7 @@ public class JwtService {
                 .signWith(secretKey)
                 .compact();
     }
+
     public String extractEmail(String token) {
 
         return Jwts.parser()
@@ -62,6 +66,44 @@ public class JwtService {
                     .parseSignedClaims(token);
 
             return true;
+
+        } catch (Exception exception) {
+
+            return false;
+        }
+    }
+
+    public boolean isRefreshToken(String token) {
+
+        try {
+
+            String type = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .get("type", String.class);
+
+            return "refresh".equals(type);
+
+        } catch (Exception exception) {
+
+            return false;
+        }
+    }
+
+    public boolean isAccessToken(String token) {
+
+        try {
+
+            String type = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .get("type", String.class);
+
+            return "access".equals(type);
 
         } catch (Exception exception) {
 

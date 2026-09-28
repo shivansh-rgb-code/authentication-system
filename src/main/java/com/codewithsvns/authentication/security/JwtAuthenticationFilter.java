@@ -8,7 +8,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
+import jakarta.servlet.http.Cookie;
 import java.io.IOException;
 import java.util.Collections;
 
@@ -20,7 +20,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public JwtAuthenticationFilter(JwtService jwtService) {
         this.jwtService = jwtService;
     }
-
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -28,18 +27,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+        String token = null;
 
-        if (authHeader == null ||
-                !authHeader.startsWith("Bearer ")) {
+        Cookie[] cookies = request.getCookies();
 
-            filterChain.doFilter(request, response);
-            return;
+        if (cookies != null) {
+
+            for (Cookie cookie : cookies) {
+
+                if ("accessToken".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
         }
 
-        String token = authHeader.substring(7);
+        if (token == null) {
 
-        if (jwtService.isTokenValid(token)) {
+            String authHeader = request.getHeader("Authorization");
+
+            if (authHeader != null &&
+                    authHeader.startsWith("Bearer ")) {
+
+                token = authHeader.substring(7);
+            }
+        }
+
+        if (token != null &&
+                jwtService.isTokenValid(token) &&
+                jwtService.isAccessToken(token)) {
 
             String email = jwtService.extractEmail(token);
 
