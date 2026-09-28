@@ -170,6 +170,16 @@ public class AuthService {
 
         String email = jwtService.extractEmail(refreshToken);
 
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new NotFoundException("User not found"));
+
+        if (!user.isVerified()) {
+            throw new BadRequestException(
+                    "User is not verified"
+            );
+        }
+
         return jwtService.generateAccessToken(email);
     }
 }
