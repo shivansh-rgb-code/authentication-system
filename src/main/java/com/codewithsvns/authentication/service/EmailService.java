@@ -13,10 +13,12 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
+
     public void sendOtp(String email, String otp) {
 
         SimpleMailMessage message = new SimpleMailMessage();
 
+        message.setFrom("shivansh2511154@akgec.ac.in");
         message.setTo(email);
         message.setSubject("Your Verification OTP");
         message.setText(
